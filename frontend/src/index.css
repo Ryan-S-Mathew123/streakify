@@ -1,0 +1,338 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+/* ─── Design Tokens ─── */
+:root {
+  --sp-black:      #121212;
+  --sp-surface:    #181818;
+  --sp-elevated:   #282828;
+  --sp-highlight:  #3e3e3e;
+  --sp-subdued:    #a7a7a7;
+  --sp-text:       #ffffff;
+  --sp-green:      #1ed760;
+  --sp-green-dim:  #1db954;
+  --sidebar-w:     240px;
+  --topbar-h:      64px;
+  --player-h:      90px;
+}
+
+/* ─── Reset & Base ─── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--sp-black);
+  color: var(--sp-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden; /* outer shell never scrolls — inner panels do */
+}
+
+/* ─── Spotify App Shell ─── */
+.sp-shell {
+  display: grid;
+  grid-template-columns: var(--sidebar-w) 1fr;
+  grid-template-rows: 1fr var(--player-h);
+  height: 100vh;
+  gap: 8px;
+  padding: 8px;
+  background: #000;
+}
+
+.sp-sidebar {
+  grid-row: 1;
+  grid-column: 1;
+  background: var(--sp-black);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sp-main {
+  grid-row: 1;
+  grid-column: 2;
+  background: var(--sp-surface);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.sp-player {
+  grid-row: 2;
+  grid-column: 1 / -1;
+  background: var(--sp-elevated);
+  border-top: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+}
+
+/* ─── Topbar inside main ─── */
+.sp-topbar {
+  height: var(--topbar-h);
+  background: var(--sp-surface);
+  border-radius: 8px 8px 0 0;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  gap: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  flex-shrink: 0;
+}
+
+/* ─── Content scroll area ─── */
+.sp-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  min-height: 0;
+}
+
+/* ─── Sidebar nav item ─── */
+.sp-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--sp-subdued);
+  transition: color 120ms ease, background 120ms ease;
+  user-select: none;
+}
+
+.sp-nav-item:hover {
+  color: var(--sp-text);
+}
+
+.sp-nav-item.active {
+  color: var(--sp-text);
+  background: var(--sp-elevated);
+}
+
+.sp-nav-item.active .sp-nav-icon {
+  color: var(--sp-green);
+}
+
+/* ─── Cards ─── */
+.sp-card {
+  background: var(--sp-elevated);
+  border-radius: 8px;
+  padding: 16px;
+  transition: background 150ms ease;
+  cursor: default;
+}
+
+.sp-card:hover {
+  background: var(--sp-highlight);
+}
+
+/* ─── Buttons ─── */
+.sp-btn-primary {
+  background: var(--sp-green);
+  color: #000;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 12px 32px;
+  border-radius: 500px;
+  border: none;
+  cursor: pointer;
+  transition: transform 80ms ease, background 120ms ease;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.sp-btn-primary:hover {
+  background: #1fdf64;
+  transform: scale(1.03);
+}
+
+.sp-btn-primary:active { transform: scale(0.97); }
+
+.sp-btn-ghost {
+  background: transparent;
+  color: var(--sp-subdued);
+  font-weight: 700;
+  font-size: 14px;
+  padding: 10px 24px;
+  border-radius: 500px;
+  border: 1px solid rgba(255,255,255,0.2);
+  cursor: pointer;
+  transition: color 120ms, border-color 120ms;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.sp-btn-ghost:hover {
+  color: var(--sp-text);
+  border-color: var(--sp-text);
+}
+
+/* ─── Pill / badge ─── */
+.sp-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 500px;
+  background: var(--sp-elevated);
+  color: var(--sp-subdued);
+  letter-spacing: 0.04em;
+}
+
+.sp-badge-green {
+  background: rgba(30, 215, 96, 0.15);
+  color: var(--sp-green);
+}
+
+/* ─── Track / song row ─── */
+.sp-track-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  transition: background 120ms;
+}
+
+.sp-track-row:hover {
+  background: var(--sp-elevated);
+}
+
+/* ─── Search input ─── */
+.sp-input {
+  background: var(--sp-elevated);
+  border: none;
+  border-radius: 6px;
+  padding: 12px 16px;
+  color: var(--sp-text);
+  font-family: inherit;
+  font-size: 14px;
+  width: 100%;
+  outline: none;
+  transition: box-shadow 120ms;
+}
+
+.sp-input:focus {
+  box-shadow: 0 0 0 2px var(--sp-green);
+}
+
+.sp-input::placeholder {
+  color: var(--sp-subdued);
+}
+
+/* ─── Section header ─── */
+.sp-section-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--sp-text);
+  margin-bottom: 16px;
+  letter-spacing: -0.01em;
+}
+
+.sp-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--sp-subdued);
+}
+
+/* ─── Divider ─── */
+.sp-divider {
+  height: 1px;
+  background: rgba(255,255,255,0.07);
+  margin: 8px 0;
+}
+
+/* ─── Scrollbars ─── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--sp-elevated); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--sp-highlight); }
+
+/* ─── Flame animation ─── */
+@keyframes flame-pulse {
+  0%, 100% { filter: drop-shadow(0 0 6px rgba(249,115,22,0.6)); }
+  50% { filter: drop-shadow(0 0 14px rgba(234,88,12,0.9)); transform: scale(1.08); }
+}
+.animate-flame { animation: flame-pulse 2s infinite ease-in-out; }
+
+/* ─── Fade-in ─── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fadeUp 200ms ease forwards; }
+
+/* ─── Green progress bar ─── */
+.sp-progress-bar {
+  width: 100%;
+  height: 4px;
+  background: var(--sp-elevated);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.sp-progress-fill {
+  height: 100%;
+  background: var(--sp-green);
+  border-radius: 2px;
+  transition: width 300ms ease;
+}
+
+/* ─── Overlay/Modal backdrop ─── */
+.sp-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(8px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.sp-modal {
+  background: var(--sp-elevated);
+  border-radius: 12px;
+  padding: 32px;
+  max-width: 480px;
+  width: 100%;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.6);
+}
+
+/* ─── Green highlight text ─── */
+.sp-green { color: var(--sp-green); }
+.sp-subdued { color: var(--sp-subdued); }
+
+/* Legacy compat classes still used in some components */
+.glass-panel {
+  background: var(--sp-surface);
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.glass-card {
+  background: var(--sp-elevated);
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.05);
+  transition: background 120ms;
+}
+.glass-card:hover {
+  background: var(--sp-highlight);
+  border-color: rgba(255,255,255,0.08);
+}

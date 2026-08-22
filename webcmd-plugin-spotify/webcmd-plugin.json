@@ -1,0 +1,10 @@
+{
+  "name": "webcmd-plugin-spotify",
+  "version": "0.1.0",
+  "description": "Custom Spotify WebCMD plugin for SongStreak",
+  "webcmd": ">=0.7.4",
+  "author": {
+    "name": "SongStreak Team",
+    "handle": "songstreak"
+  }
+}
