@@ -28,16 +28,19 @@ interface StatsData {
 export const WeeklyStats: React.FC<WeeklyStatsProps> = ({ currentUser, activeGroup }) => {
   const [stats, setStats] = useState<StatsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchStats = async () => {
       if (!activeGroup) return;
       setLoading(true);
       try {
+        setError(null);
         const res = await axios.get(`/api/discovery/weekly-stats/${activeGroup.id}/${currentUser.id}`);
         setStats(res.data);
       } catch (err) {
         console.error('Failed to fetch weekly stats:', err);
+        setError('Weekly stats are unavailable right now. Please try again shortly.');
       } finally {
         setLoading(false);
       }
@@ -45,10 +48,16 @@ export const WeeklyStats: React.FC<WeeklyStatsProps> = ({ currentUser, activeGro
     fetchStats();
   }, [activeGroup, currentUser]);
 
-  if (loading || !stats) {
+  if (!stats) {
     return (
-      <div className="max-w-4xl mx-auto py-12 text-center text-slate-400">
-        Loading weekly music stats...
+      <div className="max-w-4xl mx-auto py-12 px-4 text-center text-slate-400">
+        {error ? (
+          <div className="glass-panel p-4 rounded-2xl border border-red-500/40 bg-red-500/10 text-red-100 text-sm">
+            {error}
+          </div>
+        ) : (
+          loading ? 'Loading weekly music stats...' : 'Weekly stats are unavailable right now.'
+        )}
       </div>
     );
   }

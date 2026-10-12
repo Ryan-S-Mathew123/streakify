@@ -16,11 +16,13 @@ export const Discovery: React.FC<DiscoveryProps> = ({ currentUser, activeGroup }
   const [loading, setLoading] = useState(true);
   const [topArtists, setTopArtists] = useState<string[]>([]);
   const [recommendations, setRecommendations] = useState<RecommendedSong[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchDiscoveryData = useCallback(async () => {
     if (!activeGroup) return;
     startTransition(() => setLoading(true));
     try {
+      setError(null);
       const res = await axios.get(`/api/discovery/friends/${activeGroup.id}/${currentUser.id}`);
       startTransition(() => {
         setTopArtists(res.data.top_friend_artists || []);
@@ -28,6 +30,7 @@ export const Discovery: React.FC<DiscoveryProps> = ({ currentUser, activeGroup }
       });
     } catch (err) {
       console.error('Failed to fetch discovery recommendations:', err);
+      setError('Discovery recommendations are temporarily unavailable. Please try again.');
     } finally {
       startTransition(() => setLoading(false));
     }
@@ -76,6 +79,12 @@ export const Discovery: React.FC<DiscoveryProps> = ({ currentUser, activeGroup }
               <span>{artist}</span>
             </span>
           ))}
+        </div>
+      )}
+
+      {error && (
+        <div className="glass-panel p-4 rounded-2xl border border-red-500/40 bg-red-500/10 text-red-100 text-sm">
+          {error}
         </div>
       )}
 

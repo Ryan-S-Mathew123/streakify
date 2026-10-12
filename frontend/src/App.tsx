@@ -81,6 +81,7 @@ export const App: React.FC = () => {
   const [groupStreak, setGroupStreak] = useState(0);
   const [userStreak, setUserStreak] = useState(0);
   const [theme, setTheme] = useState<Theme>(() => localStorage.getItem("streakify-theme") === "dark" || (!localStorage.getItem("streakify-theme") && localStorage.getItem("songstreak-theme") === "dark") ? "dark" : "light");
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -90,6 +91,7 @@ export const App: React.FC = () => {
   useEffect(() => {
     (async () => {
       try {
+        setError(null);
         const response = await axios.get("/api/auth/me");
         if (response.data) {
           const circle = await axios.get("/api/groups/main");
@@ -99,7 +101,10 @@ export const App: React.FC = () => {
           });
         }
       } catch (error: any) {
-        if (error.response?.status !== 401) console.error("Could not restore the session:", error);
+        if (error.response?.status !== 401) {
+          console.error("Could not restore the session:", error);
+          setError("We couldn’t restore your session. Please refresh or sign in again.");
+        }
       } finally {
         startTransition(() => setLoading(false));
       }
@@ -109,6 +114,7 @@ export const App: React.FC = () => {
   const fetchFeedAndStreaks = useCallback(async () => {
     if (!activeGroup || !currentUser) return;
     try {
+      setError(null);
       const [feedResponse, streakResponse] = await Promise.all([
         axios.get(`/api/feed/${activeGroup.id}`, { params: { current_user_id: currentUser.id } }),
         axios.get(`/api/streaks/group/${activeGroup.id}`),
@@ -123,6 +129,7 @@ export const App: React.FC = () => {
       });
     } catch (error) {
       console.error("Could not load circle activity:", error);
+      setError("We couldn't load the circle feed and stats. Please try again.");
     }
   }, [activeGroup, currentUser]);
 
@@ -130,11 +137,13 @@ export const App: React.FC = () => {
 
   const handleAuthenticated = async (user: User) => {
     setCurrentUser(user);
+    setError(null);
     try {
       const circle = await axios.get("/api/groups/main");
       setActiveGroup(circle.data);
     } catch (error) {
       console.error("Could not open the shared circle:", error);
+      setError("The shared circle opened but could not be loaded. Please refresh and try again.");
       await axios.post("/api/auth/logout");
       setCurrentUser(null);
     }
@@ -168,6 +177,11 @@ export const App: React.FC = () => {
             <button className="logout-button" type="button" onClick={handleLogout} aria-label="Sign out" title="Sign out"><LogOut size={17} /></button>
           </div>
         </header>
+        {error && (
+          <div className="sp-content" style={{ paddingBottom: 0 }}>
+            <div className="pick-error" style={{ margin: '18px 0 0' }}>{error}</div>
+          </div>
+        )}
         <div className="sp-content fade-up" key={activeTab}>
           {activeTab === "feed" && <Feed feedItems={feedItems} currentUser={currentUser} activeGroup={activeGroup} hasSubmittedToday={hasSubmittedToday}
             onToggleReaction={async (id, emoji) => { await axios.post("/api/feed/reaction", { submission_id: id, user_id: currentUser.id, emoji }); await fetchFeedAndStreaks(); }}

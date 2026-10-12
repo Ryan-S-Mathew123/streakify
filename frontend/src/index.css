@@ -18,8 +18,6 @@
   --button-ink:     #ffffff;
   --line:          #dce3d8;
   --hero-surface:  #e8efdb;
-  --button-surface: #d2e878;
-  --button-ink: #1a2118;
   --hero-border:   #d5dfc2;
   --song-surface:  #f2f4ef;
   --avatar-surface:#e8eddd;
@@ -49,6 +47,8 @@
   --sp-green-dim: #b8d255;
   --accent-coral: #e68a73;
   --ink-muted: #a1afa4;
+  --button-surface: #d2e878;
+  --button-ink: #1a2118;
   --line: #354238;
   --hero-surface: #273329;
   --hero-border: #3b4b3b;
@@ -181,11 +181,11 @@ body {
 
 .sp-nav-item.active {
   color: var(--sp-text);
-  background: #eaf0d8;
+  background: var(--hero-surface);
 }
 
 .sp-nav-item.active .sp-nav-icon {
-  color: var(--sp-green);
+  color: var(--accent-coral);
 }
 
 /* ─── Cards ─── */
