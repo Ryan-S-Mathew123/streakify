@@ -4,7 +4,6 @@ export interface User {
   display_name: string;
   email: string;
   avatar_url: string;
-  is_admin: boolean;
 }
 
 export interface Group {
@@ -18,12 +17,12 @@ export interface Group {
 
 export interface Song {
   id?: number;
-  spotify_id: string;
+  catalog_id: string;
   title: string;
   artists: string;
   album: string;
   album_image_url: string;
-  spotify_url: string;
+  catalog_url: string;
   duration_ms?: number;
 }
 
@@ -54,25 +53,3 @@ export interface LeaderboardUser {
   reactions_received: number;
 }
 
-export interface WebcmdLogItem {
-  id: number;
-  command: string;
-  query: string;
-  duration_ms: number;
-  status_code: number;
-  output_preview: string;
-  timestamp: string;
-}
-
-export interface StreakRescueItem {
-  id: number;
-  user_id: number;
-  username: string;
-  display_name: string;
-  avatar_url: string;
-  group_name: string;
-  target_date: string;
-  reason: string;
-  status: string;
-  created_at: string;
-}

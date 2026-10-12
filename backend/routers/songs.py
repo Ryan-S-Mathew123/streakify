@@ -2,35 +2,44 @@ import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional
 from ..database import get_db
-from ..models import Song, DailySubmission, User, Group
-from ..webcmd_service import run_webcmd_spotify_search
+from ..models import Song, DailySubmission, GroupMember, User
+from ..itunes_service import itunes_search
+from ..security import get_current_user
 
 router = APIRouter(prefix="/api/songs", tags=["songs"])
 
 class SubmitSongRequest(BaseModel):
     user_id: int
     group_id: int
-    spotify_id: str
+    catalog_id: str
     title: str
     artists: str
     album: str
     album_image_url: Optional[str] = None
-    spotify_url: Optional[str] = None
+    catalog_url: Optional[str] = None
     duration_ms: Optional[int] = 0
 
 @router.get("/search")
 def search_songs(query: str, limit: int = 10, db: Session = Depends(get_db)):
     if not query or not query.strip():
-        return {"command": "", "duration_ms": 0, "results_count": 0, "results": []}
-    
-    # Executes webcmd CLI: webcmd webcmd-plugin-spotify search "<query>" -f json
-    result = run_webcmd_spotify_search(query=query.strip(), db=db, limit=limit)
-    return result
+        return {"results_count": 0, "results": []}
+
+    try:
+        results = itunes_search(query=query.strip(), limit=limit)
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail="Song catalog search is temporarily unavailable.") from exc
+
+    return {"results_count": len(results), "results": results}
 
 @router.post("/submit")
-def submit_song(data: SubmitSongRequest, db: Session = Depends(get_db)):
+def submit_song(data: SubmitSongRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if data.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="You can only submit a song for yourself.")
+    membership = db.query(GroupMember).filter(GroupMember.user_id == current_user.id, GroupMember.group_id == data.group_id).first()
+    if not membership:
+        raise HTTPException(status_code=403, detail="You are not a member of this circle.")
     today_str = datetime.date.today().isoformat()
 
     # Check if user already submitted for this group today
@@ -47,15 +56,15 @@ def submit_song(data: SubmitSongRequest, db: Session = Depends(get_db)):
         )
 
     # Get or create Song record
-    song = db.query(Song).filter(Song.spotify_id == data.spotify_id).first()
+    song = db.query(Song).filter(Song.catalog_id == data.catalog_id).first()
     if not song:
         song = Song(
-            spotify_id=data.spotify_id,
+            catalog_id=data.catalog_id,
             title=data.title,
             artists=data.artists,
             album=data.album,
             album_image_url=data.album_image_url,
-            spotify_url=data.spotify_url,
+            catalog_url=data.catalog_url,
             duration_ms=data.duration_ms or 0
         )
         db.add(song)
@@ -85,7 +94,9 @@ def submit_song(data: SubmitSongRequest, db: Session = Depends(get_db)):
     }
 
 @router.get("/user-submission/{group_id}/{user_id}")
-def check_user_today_submission(group_id: int, user_id: int, db: Session = Depends(get_db)):
+def check_user_today_submission(group_id: int, user_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="You can only view your own submissions.")
     today_str = datetime.date.today().isoformat()
     sub = db.query(DailySubmission).filter(
         DailySubmission.user_id == user_id,
@@ -107,7 +118,7 @@ def check_user_today_submission(group_id: int, user_id: int, db: Session = Depen
                 "artists": song.artists,
                 "album": song.album,
                 "album_image_url": song.album_image_url,
-                "spotify_url": song.spotify_url
+                "catalog_url": song.catalog_url
             }
         }
     }

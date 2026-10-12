@@ -1,145 +1,79 @@
-# ?? SongStreak � Social Daily Song & Streak Platform
+# Streakify
 
-> **One song every day. One streak together.**
+Streakify is a daily song-picking ritual for friends. Create an account, choose one song each day, and build a shared circle streak.
 
-SongStreak is a social music platform where friends share exactly **one Song of the Day** and build streaks together. Built for the **WebCMD Hackathon**, it showcases WebCMD as a core architectural component for music discovery.
+## Features
 
----
+- Email/password accounts with signed, HTTP-only sessions
+- One shared circle; new members join automatically
+- iTunes Search API catalog lookup without API credentials
+- One song submission per member per day
+- Personal and circle streaks, leaderboard, and weekly stats
+- Friend-based song discovery and compact reactions
+- Persistent light and dark themes
+- No audio playback; Streakify is about the daily ritual
 
-## ?? Quick Start
+## Stack
 
-### Prerequisites
-- Python 3.10+
-- Node.js 18+
-- WebCMD installed globally (`npm install -g webcmd`)
-- `webcmd-plugin-spotify` plugin (included in this repo)
+- FastAPI, SQLAlchemy, SQLite
+- React, TypeScript, Vite, Tailwind CSS
+- Docker single-service deployment
 
-### 1. Install the WebCMD plugin
+## Run Locally
 
-```
-cd webcmd-plugin-spotify
-npm install
-cd ..
-webcmd install webcmd-plugin-spotify
-```
+From the project root, install the backend dependencies and start the API:
 
-Verify:
-```
-webcmd webcmd-plugin-spotify search "Taylor Swift" --limit 4 -f json
-```
-
-### 2. Start the Backend
-
-```
-cd backend
-pip install -r requirements.txt
-python seed.py
-python -m uvicorn main:app --port 8000 --reload
+```powershell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+python -m pip install -r backend/requirements.txt
+python -m uvicorn backend.main:app --reload --port 8000
 ```
 
-Backend: http://localhost:8000 | Docs: http://localhost:8000/docs
+In a second terminal:
 
-### 3. Start the Frontend
-
-```
+```powershell
 cd frontend
 npm install
 npm run dev
 ```
 
-Frontend: http://localhost:5173
+Open http://localhost:5173 and create an account. The first account starts the shared circle; subsequent registrations join it automatically. The API docs are available locally at http://localhost:8000/docs.
 
-### 4. Log in as `ryan` (admin user with pre-seeded data)
+On Windows, `start.bat` starts both development servers after the dependencies are installed.
 
----
+## Deploy
 
-## ?? WebCMD Integration � The Core
+The repository includes a Render Blueprint. In Render, create a new Blueprint from this repository. It builds the frontend and serves it with FastAPI on one origin, generates `SESSION_SECRET`, and mounts SQLite on a persistent disk. Keep the service to one instance while using SQLite.
 
-**WebCMD is not a peripheral feature � it IS the song discovery engine.**
+For another Docker host, provide:
 
-Every song search flows through the WebCMD CLI:
+- `APP_ENV=production`
+- A strong `SESSION_SECRET`
+- `DATABASE_URL`, pointing to a persistent SQLite file
+- A persistent volume mounted at `/var/data`
 
-```
-User query ? POST /api/spotify/search
-           ? webcmd_service.py
-           ? webcmd webcmd-plugin-spotify search "<query>" --limit 4 -f json
-           ? iTunes Search API ? Spotify-schema JSON
-           ? Results displayed + logged to webcmd_logs table
-```
+The server reads the platform-provided `PORT`. Demo seeding is off by default; do not enable `SEED_DEMO_DATA` in production.
 
-### Custom Plugin: `webcmd-plugin-spotify`
+## Project Layout
 
-- Located in `webcmd-plugin-spotify/`
-- Queries iTunes Search API (public, no auth)
-- Returns Spotify-compatible JSON (title, artists, album, album_image_url, duration_ms)
-- Supports: `--limit`, `-f json`
-
-### WebCMD Observability
-
-Every CLI call is logged with: command string, query, duration_ms, status_code, output preview, timestamp. Visible in the **WebCMD** tab.
-
----
-
-## ? Features
-
-- Auth: Login/register (demo users pre-seeded)
-- Groups: Create/join via invite code
-- Song of the Day: One submission per day per group
-- WebCMD Search: Real-time music search via CLI
-- Streaks: Individual and group streak tracking
-- Leaderboard: Ranked by streak, submissions, reactions
-- Reactions: Emoji reactions on friends' songs
-- Streak Rescue: Admin-approved emergency rescue
-- Discovery: Browse friends' recent submissions
-- Weekly Stats: Top artists, tracks, heatmap
-- Observability: Live WebCMD CLI log panel
-
----
-
-## ?? Demo Users (seeded)
-
-| Username | Role   | Streak |
-|----------|--------|--------|
-| ryan     | Admin  | 15 days |
-| sam      | Member | 22 days ?? |
-| john     | Member | 16 days |
-| alex     | Member | 10 days |
-| josh     | Member | 10 days |
-
-All in group **Ryan's Music Circle** (invite code shown in app).
-
----
-
-## ??? Architecture
-
-```
-WEBCMD hackathon/
-+-- backend/
-�   +-- main.py               # FastAPI entrypoint
-�   +-- webcmd_service.py     # ? WebCMD CLI wrapper
-�   +-- models.py             # SQLAlchemy ORM
-�   +-- seed.py               # Demo data
-�   +-- routers/              # auth, groups, songs, streaks, discovery
-+-- frontend/
-�   +-- src/components/       # Feed, SongSearchSubmit, Leaderboard,
-�                             #   Discovery, WeeklyStats, AdminRescue,
-�                             #   WebcmdObservability
-+-- webcmd-plugin-spotify/    # ? Custom WebCMD plugin
-    +-- index.js
-    +-- search.js             # iTunes ? Spotify-schema mapper
+```text
+.
+├── backend/
+│   ├── circle.py
+│   ├── database.py
+│   ├── itunes_service.py
+│   ├── main.py
+│   ├── models.py
+│   ├── security.py
+│   └── routers/
+├── frontend/
+│   └── src/
+├── Dockerfile
+├── render.yaml
+└── start.bat
 ```
 
----
+## License
 
-## ?? Hackathon: WebCMD Compliance
-
-1. ? **Architecturally core** � search fails without WebCMD
-2. ? **Custom plugin** � written for this project
-3. ? **Live invocation** � CLI called per search, never faked
-4. ? **Structured output** � JSON consumed by backend
-5. ? **Observability** � every call logged and surfaced in UI
-6. ? **Real data** � iTunes Search API, not hardcoded
-
----
-
-MIT � WebCMD Hackathon 2026
+MIT

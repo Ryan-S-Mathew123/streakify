@@ -1,5 +1,5 @@
 import datetime
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Text, UniqueConstraint
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
 from .database import Base
 
@@ -10,6 +10,7 @@ class User(Base):
     username = Column(String, unique=True, index=True, nullable=False)
     display_name = Column(String, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
+    password_hash = Column(String, nullable=True)
     avatar_url = Column(String, nullable=True)
     is_admin = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
@@ -48,12 +49,12 @@ class Song(Base):
     __tablename__ = "songs"
 
     id = Column(Integer, primary_key=True, index=True)
-    spotify_id = Column(String, unique=True, index=True, nullable=False)
+    catalog_id = Column("spotify_id", String, unique=True, index=True, nullable=False)
     title = Column(String, nullable=False)
     artists = Column(String, nullable=False)
     album = Column(String, nullable=False)
     album_image_url = Column(String, nullable=True)
-    spotify_url = Column(String, nullable=True)
+    catalog_url = Column("spotify_url", String, nullable=True)
     duration_ms = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
@@ -90,25 +91,3 @@ class Reaction(Base):
     submission = relationship("DailySubmission", back_populates="reactions")
     user = relationship("User", back_populates="reactions")
 
-class StreakRescue(Base):
-    __tablename__ = "streak_rescues"
-
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    group_id = Column(Integer, ForeignKey("groups.id"), nullable=False)
-    target_date = Column(String, nullable=False) # Format: YYYY-MM-DD
-    reason = Column(Text, nullable=False)
-    status = Column(String, default="pending") # pending, approved, rejected
-    reviewed_by = Column(Integer, ForeignKey("users.id"), nullable=True)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
-
-class WebcmdLog(Base):
-    __tablename__ = "webcmd_logs"
-
-    id = Column(Integer, primary_key=True, index=True)
-    command = Column(String, nullable=False)
-    query = Column(String, nullable=False)
-    duration_ms = Column(Integer, nullable=False)
-    status_code = Column(Integer, nullable=False)
-    output_preview = Column(Text, nullable=True)
-    timestamp = Column(DateTime, default=datetime.datetime.utcnow)

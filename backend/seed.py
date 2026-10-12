@@ -1,6 +1,6 @@
 import datetime
 from .database import SessionLocal, engine, Base
-from .models import User, Group, GroupMember, Song, DailySubmission, Reaction, StreakRescue, WebcmdLog
+from .models import User, Group, GroupMember, Song, DailySubmission, Reaction
 
 def seed_database():
     Base.metadata.create_all(bind=engine)
@@ -16,11 +16,11 @@ def seed_database():
 
     # 1. Create Users
     users_data = [
-        {"username": "ryan", "display_name": "Ryan", "email": "ryan@songstreak.com", "avatar_url": "https://api.dicebear.com/7.x/avataaars/svg?seed=Ryan", "is_admin": True},
-        {"username": "alex", "display_name": "Alex", "email": "alex@songstreak.com", "avatar_url": "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex", "is_admin": False},
-        {"username": "sam", "display_name": "Sam", "email": "sam@songstreak.com", "avatar_url": "https://api.dicebear.com/7.x/avataaars/svg?seed=Sam", "is_admin": False},
-        {"username": "john", "display_name": "John", "email": "john@songstreak.com", "avatar_url": "https://api.dicebear.com/7.x/avataaars/svg?seed=John", "is_admin": False},
-        {"username": "josh", "display_name": "Josh", "email": "josh@songstreak.com", "avatar_url": "https://api.dicebear.com/7.x/avataaars/svg?seed=Josh", "is_admin": False},
+        {"username": "ryan", "display_name": "Ryan", "email": "ryan@streakify.app", "avatar_url": "https://api.dicebear.com/7.x/avataaars/svg?seed=Ryan", "is_admin": True},
+        {"username": "alex", "display_name": "Alex", "email": "alex@streakify.app", "avatar_url": "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex", "is_admin": False},
+        {"username": "sam", "display_name": "Sam", "email": "sam@streakify.app", "avatar_url": "https://api.dicebear.com/7.x/avataaars/svg?seed=Sam", "is_admin": False},
+        {"username": "john", "display_name": "John", "email": "john@streakify.app", "avatar_url": "https://api.dicebear.com/7.x/avataaars/svg?seed=John", "is_admin": False},
+        {"username": "josh", "display_name": "Josh", "email": "josh@streakify.app", "avatar_url": "https://api.dicebear.com/7.x/avataaars/svg?seed=Josh", "is_admin": False},
     ]
 
     users = {}
@@ -47,57 +47,57 @@ def seed_database():
     # 3. Create Songs
     songs_data = [
         {
-            "spotify_id": "webcmd_1847992612",
+            "catalog_id": "seed_raindance_dave_tems",
             "title": "Raindance",
             "artists": "Dave & Tems",
             "album": "The Boy Who Played the Harp",
             "album_image_url": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/99/49/24/9949241c-e52c-3018-eae8-c686013a7474/25UM1IM68216.rgb.jpg/600x600bb.jpg",
-            "spotify_url": "https://open.spotify.com/track/webcmd_1847992612",
+            "catalog_url": "",
             "duration_ms": 219744
         },
         {
-            "spotify_id": "webcmd_nights_fo",
+            "catalog_id": "seed_nights_frank_ocean",
             "title": "Nights",
             "artists": "Frank Ocean",
             "album": "Blonde",
             "album_image_url": "https://upload.wikimedia.org/wikipedia/en/a/a0/Blonde_-_Frank_Ocean.jpeg",
-            "spotify_url": "https://open.spotify.com/track/webcmd_nights_fo",
+            "catalog_url": "",
             "duration_ms": 307000
         },
         {
-            "spotify_id": "webcmd_505_am",
+            "catalog_id": "seed_505_arctic_monkeys",
             "title": "505",
             "artists": "Arctic Monkeys",
             "album": "Favourite Worst Nightmare",
             "album_image_url": "https://upload.wikimedia.org/wikipedia/en/a/a7/Arcticmonkeys_favourite_worst_nightmare.jpg",
-            "spotify_url": "https://open.spotify.com/track/webcmd_505_am",
+            "catalog_url": "",
             "duration_ms": 253000
         },
         {
-            "spotify_id": "webcmd_afterdark_mk",
+            "catalog_id": "seed_after_dark_mr_kitty",
             "title": "After Dark",
             "artists": "Mr.Kitty",
             "album": "Time",
             "album_image_url": "https://m.media-amazon.com/images/I/71r-070k1EL._UF1000,1000_QL80_.jpg",
-            "spotify_url": "https://open.spotify.com/track/webcmd_afterdark_mk",
+            "catalog_url": "",
             "duration_ms": 259000
         },
         {
-            "spotify_id": "webcmd_letithappen_ti",
+            "catalog_id": "seed_let_it_happen_tame_impala",
             "title": "Let It Happen",
             "artists": "Tame Impala",
             "album": "Currents",
             "album_image_url": "https://upload.wikimedia.org/wikipedia/en/9/9b/Tame_Impala_-_Currents.png",
-            "spotify_url": "https://open.spotify.com/track/webcmd_letithappen_ti",
+            "catalog_url": "",
             "duration_ms": 467000
         },
         {
-            "spotify_id": "webcmd_blinding_tw",
+            "catalog_id": "seed_blinding_lights_weeknd",
             "title": "Blinding Lights",
             "artists": "The Weeknd",
             "album": "After Hours",
             "album_image_url": "https://upload.wikimedia.org/wikipedia/en/c/c1/The_Weeknd_-_Blinding_Lights.png",
-            "spotify_url": "https://open.spotify.com/track/webcmd_blinding_tw",
+            "catalog_url": "",
             "duration_ms": 200000
         }
     ]
@@ -107,7 +107,7 @@ def seed_database():
         song = Song(**s)
         db.add(song)
         db.flush()
-        songs[s["spotify_id"]] = song
+        songs[s["catalog_id"]] = song
 
     # 4. Generate Submissions for Today and Past Days
     today = datetime.date.today()
@@ -115,7 +115,7 @@ def seed_database():
     # Ryan: submitted for last 14 days up to today
     for i in range(14, -1, -1):
         day_str = (today - datetime.timedelta(days=i)).isoformat()
-        s_obj = songs["webcmd_nights_fo"] if i % 2 == 0 else songs["webcmd_1847992612"]
+        s_obj = songs["seed_nights_frank_ocean"] if i % 2 == 0 else songs["seed_raindance_dave_tems"]
         sub = DailySubmission(
             user_id=users["ryan"].id,
             group_id=group.id,
@@ -130,7 +130,7 @@ def seed_database():
         sub = DailySubmission(
             user_id=users["alex"].id,
             group_id=group.id,
-            song_id=songs["webcmd_505_am"].id,
+            song_id=songs["seed_505_arctic_monkeys"].id,
             submission_date=day_str
         )
         db.add(sub)
@@ -141,7 +141,7 @@ def seed_database():
         sub = DailySubmission(
             user_id=users["sam"].id,
             group_id=group.id,
-            song_id=songs["webcmd_afterdark_mk"].id,
+            song_id=songs["seed_after_dark_mr_kitty"].id,
             submission_date=day_str
         )
         db.add(sub)
@@ -152,7 +152,7 @@ def seed_database():
         sub = DailySubmission(
             user_id=users["john"].id,
             group_id=group.id,
-            song_id=songs["webcmd_letithappen_ti"].id,
+            song_id=songs["seed_let_it_happen_tame_impala"].id,
             submission_date=day_str
         )
         db.add(sub)
@@ -163,7 +163,7 @@ def seed_database():
         sub = DailySubmission(
             user_id=users["josh"].id,
             group_id=group.id,
-            song_id=songs["webcmd_blinding_tw"].id,
+            song_id=songs["seed_blinding_lights_weeknd"].id,
             submission_date=day_str
         )
         db.add(sub)
@@ -184,26 +184,6 @@ def seed_database():
         elif sub.user_id == users["sam"].id:
             db.add(Reaction(submission_id=sub.id, user_id=users["ryan"].id, emoji="🔥"))
             db.add(Reaction(submission_id=sub.id, user_id=users["alex"].id, emoji="❤️"))
-
-    # 6. Add Pending Streak Rescue Request for John
-    rescue = StreakRescue(
-        user_id=users["john"].id,
-        group_id=group.id,
-        target_date=(today - datetime.timedelta(days=1)).isoformat(),
-        reason="Flight was delayed and I had zero cellular access all night! Please rescue my 16-day streak 🙏",
-        status="pending"
-    )
-    db.add(rescue)
-
-    # 7. Add Initial WebcmdLog Entry
-    webcmd_log = WebcmdLog(
-        command='webcmd webcmd-plugin-spotify search "raindance" --limit 10 -f json',
-        query="raindance",
-        duration_ms=1820,
-        status_code=0,
-        output_preview='[{"title": "Raindance", "artists": "Dave & Tems", "album": "The Boy Who Played the Harp", "spotify_id": "webcmd_1847992612"}]'
-    )
-    db.add(webcmd_log)
 
     db.commit()
     print("Database successfully seeded!")

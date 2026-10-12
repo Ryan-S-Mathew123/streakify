@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from typing import Optional, List, Dict
 from ..database import get_db
 from ..models import DailySubmission, Song, User, Reaction, GroupMember
+from ..security import get_current_user
 from .streaks import calculate_user_streak
 
 router = APIRouter(prefix="/api/feed", tags=["feed"])
@@ -15,7 +16,12 @@ class ToggleReactionRequest(BaseModel):
     emoji: str
 
 @router.get("/{group_id}")
-def get_daily_feed(group_id: int, current_user_id: int, date: Optional[str] = None, db: Session = Depends(get_db)):
+def get_daily_feed(group_id: int, current_user_id: int, date: Optional[str] = None, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if current_user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="You can only view your own feed state.")
+    membership = db.query(GroupMember).filter(GroupMember.user_id == current_user.id, GroupMember.group_id == group_id).first()
+    if not membership:
+        raise HTTPException(status_code=403, detail="You are not a member of this circle.")
     target_date = date or datetime.date.today().isoformat()
 
     # Check if current user has submitted today for this group
@@ -61,12 +67,12 @@ def get_daily_feed(group_id: int, current_user_id: int, date: Optional[str] = No
             },
             "song": {
                 "id": song.id,
-                "spotify_id": song.spotify_id,
+                "catalog_id": song.catalog_id,
                 "title": song.title,
                 "artists": song.artists,
                 "album": song.album,
                 "album_image_url": song.album_image_url,
-                "spotify_url": song.spotify_url,
+                "catalog_url": song.catalog_url,
                 "duration_ms": song.duration_ms
             },
             "reactions": emoji_counts,
@@ -80,7 +86,9 @@ def get_daily_feed(group_id: int, current_user_id: int, date: Optional[str] = No
     }
 
 @router.post("/reaction")
-def toggle_reaction(data: ToggleReactionRequest, db: Session = Depends(get_db)):
+def toggle_reaction(data: ToggleReactionRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if data.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="You can only react as yourself.")
     sub = db.query(DailySubmission).filter(DailySubmission.id == data.submission_id).first()
     if not sub:
         raise HTTPException(status_code=404, detail="Submission not found")

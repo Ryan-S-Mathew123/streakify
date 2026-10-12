@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: streakify
+    runtime: docker
+    plan: starter
+    numInstances: 1
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    disk:
+      name: streakify-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: DATABASE_URL
+        value: sqlite:////var/data/songstreak.db
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: SEED_DEMO_DATA
+        value: "false"

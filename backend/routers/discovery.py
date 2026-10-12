@@ -1,15 +1,20 @@
 import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import Optional, List, Dict
+from typing import Dict
 from ..database import get_db
 from ..models import DailySubmission, Song, Reaction, User, GroupMember
-from ..webcmd_service import run_webcmd_spotify_search
+from ..itunes_service import itunes_search
+from ..security import get_current_user
 
 router = APIRouter(prefix="/api/discovery", tags=["discovery"])
 
 @router.get("/friends/{group_id}/{user_id}")
-def discover_from_friends(group_id: int, user_id: int, db: Session = Depends(get_db)):
+def discover_from_friends(group_id: int, user_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="You can only get recommendations for yourself.")
+    if not db.query(GroupMember).filter(GroupMember.group_id == group_id, GroupMember.user_id == current_user.id).first():
+        raise HTTPException(status_code=403, detail="You are not a member of this circle.")
     # 1. Fetch recent songs submitted by group members (excluding current user)
     submissions = db.query(DailySubmission).filter(
         DailySubmission.group_id == group_id,
@@ -39,17 +44,20 @@ def discover_from_friends(group_id: int, user_id: int, db: Session = Depends(get
 
     recommendations = []
     for artist in sample_artists:
-        # Use WebCMD Spotify search workflow
-        search_res = run_webcmd_spotify_search(query=artist, db=db, limit=4)
-        for track in search_res.get("results", []):
+        try:
+            search_res = itunes_search(query=artist, limit=4)
+        except Exception:
+            continue
+
+        for track in search_res:
             if track["title"].lower() not in user_song_titles:
                 recommendations.append({
                     "title": track["title"],
                     "artists": track["artists"],
                     "album": track["album"],
                     "album_image_url": track["album_image_url"],
-                    "spotify_url": track["spotify_url"],
-                    "spotify_id": track["spotify_id"],
+                    "catalog_url": track["catalog_url"],
+                    "catalog_id": track["catalog_id"],
                     "recommended_because": f"Your friends listen to {artist}"
                 })
                 if len(recommendations) >= 6:
@@ -63,7 +71,11 @@ def discover_from_friends(group_id: int, user_id: int, db: Session = Depends(get
     }
 
 @router.get("/weekly-stats/{group_id}/{user_id}")
-def get_weekly_music_stats(group_id: int, user_id: int, db: Session = Depends(get_db)):
+def get_weekly_music_stats(group_id: int, user_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="You can only view your own stats.")
+    if not db.query(GroupMember).filter(GroupMember.group_id == group_id, GroupMember.user_id == current_user.id).first():
+        raise HTTPException(status_code=403, detail="You are not a member of this circle.")
     seven_days_ago = (datetime.date.today() - datetime.timedelta(days=7)).isoformat()
 
     user_subs = db.query(DailySubmission).filter(
